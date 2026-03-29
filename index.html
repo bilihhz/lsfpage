@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>卢瑟福助手</title>
+    <link rel="icon" href="/web.ico">
+    
+    <style>
+        /* --- 字体加载 --- */
+        @font-face {
+            font-family: 'Inter';
+            src: url('./Inter-VariableFont_opsz,wght.ttf') format('truetype');
+            font-weight: 100 900;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'source-han-serif-sc';
+            src: url('./SOURCEHANSANSSC-REGULAR.OTF') format('opentype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        :root {
+            --primary-color: #007bff;
+            --danger-color: #ff4757;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            /* 优先使用 Inter 处理英文/数字，思源黑体处理中文 */
+            --main-font: 'Inter', 'source-han-serif-sc', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            font-family: var(--main-font);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: var(--bg-color);
+            color: #334155;
+            font-feature-settings: "cv05",  "ss01";
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            box-sizing: border-box;
+        }
+
+        h3 {
+            margin: 0 0 24px 0;
+            text-align: center;
+            color: #1e293b;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #st {
+            font-size: 13px;
+            color: #64748b;
+            height: 20px;
+            font-weight: 500;
+        }
+
+        /* 语音按钮 */
+        #micBtn {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            border: none;
+            background: var(--primary-color);
+            color: white;
+            font-size: 32px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 15px -3px rgba(0, 123, 255, 0.3);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #micBtn.active {
+            background: var(--danger-color);
+            transform: scale(0.92);
+            box-shadow: 0 0 0 12px rgba(255, 71, 87, 0.15);
+        }
+
+        /* 输入组合 */
+        .input-group {
+            display: flex;
+            width: 100%;
+            gap: 10px;
+        }
+
+        #textIn {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            outline: none;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        #textIn:focus {
+            border-color: var(--primary-color);
+        }
+
+        #sendBtn {
+            padding: 0 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: inherit;
+        }
+
+        /* 对话展示 */
+        .dialogue {
+            margin-top: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .res-box {
+            padding: 16px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.6;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-box {
+            background: #eff6ff;
+            color: #1e40af;
+            border-bottom-left-radius: 4px;
+        }
+
+        .ai-box {
+            background: #f1f5f9;
+            color: #334155;
+            border-left: 4px solid var(--primary-color);
+            border-bottom-left-radius: 4px;
+        }
+
+        .tag {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: block;
+            letter-spacing: 0.05em;
+            opacity: 0.6;
+        }
+    </style>
+    <script defer src="https://cloud.umami.is/script.js" data-website-id="60027042-1d55-4f04-8ea9-77006511bce7"></script>
+</head>
+<body>
+
+    <div class="card">
+        <h3>卢瑟福助手</h3>
+        
+        <div class="controls">
+            <div id="st">长按录音 · 直接输入</div>
+            
+            <button id="micBtn" id="micBtn">🎙️</button>
+            
+            <div class="input-group">
+                <input type="text" id="textIn" placeholder="问问卢瑟福..." autocomplete="off">
+                <button id="sendBtn">发送</button>
+            </div>
+        </div>
+
+        <div class="dialogue">
+            <div class="res-box user-box">
+                <span class="tag">YOU</span>
+                <span id="u">...</span>
+            </div>
+            
+            <div class="res-box ai-box">
+                <span class="tag">RUTHERFORD</span>
+                <span id="a">...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 【重要】将此处替换为你部署好的 Worker 域名
+        const API_URL = "https://lsfapi.hhz114514.qzz.io";
+
+        const btn = document.getElementById('micBtn');
+        const uDisp = document.getElementById('u');
+        const aDisp = document.getElementById('a');
+        const stDisp = document.getElementById('st');
+        const tInput = document.getElementById('textIn');
+        const sBtn = document.getElementById('sendBtn');
+        
+        let ac, pr, inpt, chs = [];
+
+        async function postToAI(path, body, headers = {}) {
+            stDisp.innerText = "思考中...";
+            try {
+                const r = await fetch(API_URL + path, { method: 'POST', body, headers });
+                const d = await r.json();
+                uDisp.innerText = d.userText || "...";
+                aDisp.innerText = d.aiResponse || "...";
+                stDisp.innerText = "完成";
+            } catch (e) {
+                stDisp.innerText = "API 连接失败";
+                console.error(e);
+            }
+        }
+
+        // --- 录音逻辑 ---
+        const startRec = async () => {
+            try {
+                const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+                ac = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+                inpt = ac.createMediaStreamSource(s);
+                pr = ac.createScriptProcessor(4096, 1, 1);
+                chs = [];
+                pr.onaudioprocess = (e) => chs.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+                inpt.connect(pr);
+                pr.connect(ac.destination);
+                btn.classList.add('active');
+                stDisp.innerText = "正在倾听...";
+            } catch (e) { alert("无法访问麦克风"); }
+        };
+
+        const stopRec = () => {
+            if (!pr) return;
+            btn.classList.remove('active');
+            stDisp.innerText = "处理语音中...";
+            pr.disconnect(); inpt.disconnect();
+
+            const l = chs.reduce((p, c) => p + c.length, 0);
+            const b = new ArrayBuffer(44 + l * 2);
+            const v = new DataView(b);
+            const ws = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+            ws(0, 'RIFF'); v.setUint32(4, 36 + l * 2, true); ws(8, 'WAVE'); ws(12, 'fmt ');
+            v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+            v.setUint32(24, 16000, true); v.setUint32(28, 32000, true); v.setUint16(32, 2, true);
+            v.setUint16(34, 16, true); ws(36, 'data'); v.setUint32(40, l * 2, true);
+            let o = 44;
+            for (let c of chs) {
+                for (let i = 0; i < c.length; i++) {
+                    let x = Math.max(-1, Math.min(1, c[i] * 2.0));
+                    v.setInt16(o, x < 0 ? x * 0x8000 : x * 0x7FFF, true); o += 2;
+                }
+            }
+            postToAI('/chat', b);
+        };
+
+        // 绑定事件
+        btn.onmousedown = startRec; btn.onmouseup = stopRec;
+        btn.ontouchstart = (e) => { e.preventDefault(); startRec(); };
+        btn.ontouchend = (e) => { e.preventDefault(); stopRec(); };
+
+        // --- 文字逻辑 ---
+        const sendText = () => {
+            const t = tInput.value.trim();
+            if (!t) return;
+            tInput.value = "";
+            postToAI('/text-chat', JSON.stringify({ text: t }), { 'Content-Type': 'application/json' });
+        };
+        sBtn.onclick = sendText;
+        tInput.onkeypress = (e) => { if (e.key === 'Enter') sendText(); };
+
+    </script>
+</body>
+</html>
