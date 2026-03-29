@@ -206,52 +206,7 @@
         const st = document.getElementById('st');
 
 
-        // 全局音频对象，确保同一时间只有一个声音
-let currentAudio = null;
-
-function speak(text) {
-    if (!text) return;
-
-    // 1. 停止之前的音频
-    if (currentAudio) {
-        currentAudio.pause();
-        currentAudio.src = "";
-    }
-
-    // 2. 卢瑟福专属配置：云希 (Yunxi) 或 云健 (Yunjian)
-    const voice = "zh-CN-YunxiNeural"; 
-    
-    // 备用接口 A (目前较稳)
-    const ttsUrl = `https://api.tboxn.com/tts?text=${encodeURIComponent(text)}&voice=${voice}&speed=0.9`;
-    
-    // 如果上面的不行，试试这个备用接口 B:
-    // const ttsUrl = `https://tts.baidu.com/text2audio?tex=${encodeURIComponent(text)}&cuid=baike&lan=zh&ctp=1&pdt=301&vol=9&rate=32&per=4`;
-
-    console.log("正在请求语音:", ttsUrl);
-
-    currentAudio = new Audio(ttsUrl);
-    
-    // 3. 处理浏览器拦截逻辑
-    const playPromise = currentAudio.play();
-
-    if (playPromise !== undefined) {
-        playPromise.catch(error => {
-            console.warn("语音自动播放被拦截:", error);
-            // 如果被拦截，可以提示用户点一下屏幕
-            st.innerText = "点击屏幕开启语音回复";
-            st.style.display = "block";
-            
-            // 只要用户点一次屏幕，后续就能自动播了
-            document.body.onclick = () => {
-                currentAudio.play();
-                st.style.display = "none";
-                document.body.onclick = null;
-            };
-        });
-    }
-}
-
-
+       
         function typeWriter(element, text, speed = 50) {
             let i = 0;
             element.innerText = "";
@@ -313,8 +268,7 @@ function speak(text) {
                 const finalContent = (d.aiResponse || "卢瑟福没有回应。").trim();
                 typeWriter(aiMsgDiv, finalContent);
 
-                speak(finalContent);
-
+                
             } catch (e) {
                 aiMsgDiv.innerText = "出错了: " + e.message;
             }
