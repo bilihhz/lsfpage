@@ -212,33 +212,44 @@ let currentAudio = null;
 function speak(text) {
     if (!text) return;
 
-    // 如果之前正在说话，先停掉
+    // 1. 停止之前的音频
     if (currentAudio) {
         currentAudio.pause();
-        currentAudio = null;
+        currentAudio.src = "";
     }
 
-    // 配置参数
-    const voice = "zh-CN-YunjianNeural"; // 沉稳男声，卢瑟福本人
-    const rate = "-10%"; // 语速稍微放慢一点，显得更有学者风范
-    const pitch = "+0Hz";
+    // 2. 卢瑟福专属配置：云希 (Yunxi) 或 云健 (Yunjian)
+    const voice = "zh-CN-YunxiNeural"; 
+    
+    // 备用接口 A (目前较稳)
+    const ttsUrl = `https://api.tboxn.com/tts?text=${encodeURIComponent(text)}&voice=${voice}&speed=0.9`;
+    
+    // 如果上面的不行，试试这个备用接口 B:
+    // const ttsUrl = `https://tts.baidu.com/text2audio?tex=${encodeURIComponent(text)}&cuid=baike&lan=zh&ctp=1&pdt=301&vol=9&rate=32&per=4`;
 
-    // 使用公共 Edge-TTS 转发接口
-    // 注意：如果该接口失效，可以更换为其他社区维护的 URL
-    const ttsUrl = `https://api.chencp.com/common/edge-tts?text=${encodeURIComponent(text)}&voice=${voice}&rate=${rate}&pitch=${pitch}`;
+    console.log("正在请求语音:", ttsUrl);
 
     currentAudio = new Audio(ttsUrl);
     
-    // 播放音频
-    currentAudio.play().catch(e => {
-        console.warn("自动播放被拦截，通常是因为缺少用户交互:", e);
-    });
-} 
-// 注意：浏览器加载语音包是异步的，有时需要这个监听
-window.speechSynthesis.onvoiceschanged = () => {
-    console.log("可用声音列表:", window.speechSynthesis.getVoices().map(v => v.name));
-};
+    // 3. 处理浏览器拦截逻辑
+    const playPromise = currentAudio.play();
 
+    if (playPromise !== undefined) {
+        playPromise.catch(error => {
+            console.warn("语音自动播放被拦截:", error);
+            // 如果被拦截，可以提示用户点一下屏幕
+            st.innerText = "点击屏幕开启语音回复";
+            st.style.display = "block";
+            
+            // 只要用户点一次屏幕，后续就能自动播了
+            document.body.onclick = () => {
+                currentAudio.play();
+                st.style.display = "none";
+                document.body.onclick = null;
+            };
+        });
+    }
+}
 
 
         function typeWriter(element, text, speed = 50) {
