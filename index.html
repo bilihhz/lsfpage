@@ -207,21 +207,32 @@
 
 
         function speak(text) {
-            // 先取消当前正在播放的语音
-            window.speechSynthesis.cancel();
-            
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'zh-CN';
-            msg.rate = 1.1; // 语速稍微快一点点更自然
-            msg.pitch = 0.9; // 音调低一点，符合卢瑟福严肃的设定
+    window.speechSynthesis.cancel();
+    const msg = new SpeechSynthesisUtterance(text);
+    
+    // 获取系统支持的所有声音
+    const voices = window.speechSynthesis.getVoices();
 
-            // 尝试选择一个好听的中文字体（例如 macOS 的 Ting-Ting 或 Windows 的 Xiaoxiao）
-            const voices = window.speechSynthesis.getVoices();
-            const preferredVoice = voices.find(v => v.name.includes('Microsoft') && v.lang.includes('zh-CN')) || voices.find(v => v.lang.includes('zh-CN'));
-            if (preferredVoice) msg.voice = preferredVoice;
+    // --- 常见的推荐声音 ID ---
+    // Windows 推荐: "Microsoft Kangkang" (沉稳男声) 或 "Microsoft Yunxi"
+    // macOS/iOS 推荐: "Ting-Ting" 或 "Li-mu"
+    
+    const targetVoice = //voices.find(v => v.name.includes('Kangkang')) || 
+                        //voices.find(v => v.name.includes('Yunxi')) ||
+                        voices.find(v => v.lang.includes('zh-CN')); // 兜底中文
 
-            window.speechSynthesis.speak(msg);
-        }
+    if (targetVoice) msg.voice = targetVoice;
+    
+    msg.rate = 1.0;  // 语速 (0.1 - 10)
+    msg.pitch = 0.8; // 音调 (0 - 2)，调低一点显得更严肃老成
+    
+    window.speechSynthesis.speak(msg);
+}
+
+// 注意：浏览器加载语音包是异步的，有时需要这个监听
+window.speechSynthesis.onvoiceschanged = () => {
+    console.log("可用声音列表:", window.speechSynthesis.getVoices().map(v => v.name));
+};
 
 
 
