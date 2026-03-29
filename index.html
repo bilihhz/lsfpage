@@ -206,29 +206,34 @@
         const st = document.getElementById('st');
 
 
-        function speak(text) {
-    window.speechSynthesis.cancel();
-    const msg = new SpeechSynthesisUtterance(text);
-    
-    // 获取系统支持的所有声音
-    const voices = window.speechSynthesis.getVoices();
+        // 全局音频对象，确保同一时间只有一个声音
+let currentAudio = null;
 
-    // --- 常见的推荐声音 ID ---
-    // Windows 推荐: "Microsoft Kangkang" (沉稳男声) 或 "Microsoft Yunxi"
-    // macOS/iOS 推荐: "Ting-Ting" 或 "Li-mu"
-    
-    const targetVoice = //voices.find(v => v.name.includes('Kangkang')) || 
-                        //voices.find(v => v.name.includes('Yunxi')) ||
-                        voices.find(v => v.lang.includes('zh-CN')); // 兜底中文
+function speak(text) {
+    if (!text) return;
 
-    if (targetVoice) msg.voice = targetVoice;
-    
-    msg.rate = 1.0;  // 语速 (0.1 - 10)
-    msg.pitch = 0.8; // 音调 (0 - 2)，调低一点显得更严肃老成
-    
-    window.speechSynthesis.speak(msg);
-}
+    // 如果之前正在说话，先停掉
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+    }
 
+    // 配置参数
+    const voice = "zh-CN-YunjianNeural"; // 沉稳男声，卢瑟福本人
+    const rate = "-10%"; // 语速稍微放慢一点，显得更有学者风范
+    const pitch = "+0Hz";
+
+    // 使用公共 Edge-TTS 转发接口
+    // 注意：如果该接口失效，可以更换为其他社区维护的 URL
+    const ttsUrl = `https://api.chencp.com/common/edge-tts?text=${encodeURIComponent(text)}&voice=${voice}&rate=${rate}&pitch=${pitch}`;
+
+    currentAudio = new Audio(ttsUrl);
+    
+    // 播放音频
+    currentAudio.play().catch(e => {
+        console.warn("自动播放被拦截，通常是因为缺少用户交互:", e);
+    });
+} 
 // 注意：浏览器加载语音包是异步的，有时需要这个监听
 window.speechSynthesis.onvoiceschanged = () => {
     console.log("可用声音列表:", window.speechSynthesis.getVoices().map(v => v.name));
