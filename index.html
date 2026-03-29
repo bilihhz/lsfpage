@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>卢瑟福助手</title>
-    <link rel="icon" href="/web.ico">
+    <title>卢瑟福</title>
+    <link rel="icon" href="./web.ico">
     <style>
         @font-face {
             font-family: 'Inter';
@@ -35,7 +35,6 @@
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
-
             font-feature-settings: "cv05",  "ss01";
         }
 
@@ -60,6 +59,26 @@
             scroll-behavior: smooth;
         }
 
+        /* AI 消息行容器 */
+        .ai-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            max-width: 85%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* 头像样式 */
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #fff;
+            flex-shrink: 0;
+            border: 1px solid #e2e8f0;
+            object-fit: cover;
+        }
+
         .msg {
             max-width: 80%;
             padding: 12px 16px;
@@ -68,7 +87,6 @@
             line-height: 1.5;
             word-wrap: break-word;
             position: relative;
-            animation: fadeIn 0.3s ease;
         }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -79,11 +97,11 @@
             background: var(--primary);
             color: white;
             border-bottom-right-radius: 4px;
+            animation: fadeIn 0.3s ease;
         }
 
-        /* AI 消息：左侧，白色 */
+        /* AI 消息气泡 */
         .ai {
-            align-self: flex-start;
             background: white;
             color: #334155;
             border-bottom-left-radius: 4px;
@@ -94,10 +112,10 @@
         /* 底部控制区 */
         .input-area {
             background: white;
-            padding: 15px;
+            padding: 20px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
             box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
         }
 
@@ -146,7 +164,7 @@
 
         #st {
             position: absolute;
-            bottom: 80px;
+            bottom: 90px;
             left: 50%;
             transform: translateX(-50%);
             font-size: 12px;
@@ -155,6 +173,7 @@
             padding: 4px 12px;
             border-radius: 20px;
             display: none;
+            z-index: 100;
         }
     </style>
 </head>
@@ -163,7 +182,10 @@
     <header>卢瑟福</header>
 
     <div id="chat-container">
-        <div class="msg ai">你好，我是欧内斯特·卢瑟福。关于原子结构，你有什么疑问？</div>
+        <div class="ai-row">
+            <img src="./lsf.jpg" class="avatar">
+            <div class="msg ai">你好，我是欧内斯特·卢瑟福。关于原子结构，你有什么疑问？</div>
+        </div>
     </div>
 
     <div id="st">正在录音...</div>
@@ -175,7 +197,6 @@
     </div>
 
     <script>
-        // 【重要】请修改为你自己的域名
         const API_URL = "https://lsfapi.hhz114514.qzz.io";
 
         const container = document.getElementById('chat-container');
@@ -184,7 +205,26 @@
         const micBtn = document.getElementById('micBtn');
         const st = document.getElementById('st');
 
-        // --- 逐字打印效果 ---
+
+        function speak(text) {
+            // 先取消当前正在播放的语音
+            window.speechSynthesis.cancel();
+            
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'zh-CN';
+            msg.rate = 1.1; // 语速稍微快一点点更自然
+            msg.pitch = 0.9; // 音调低一点，符合卢瑟福严肃的设定
+
+            // 尝试选择一个好听的中文字体（例如 macOS 的 Ting-Ting 或 Windows 的 Xiaoxiao）
+            const voices = window.speechSynthesis.getVoices();
+            const preferredVoice = voices.find(v => v.name.includes('Microsoft') && v.lang.includes('zh-CN')) || voices.find(v => v.lang.includes('zh-CN'));
+            if (preferredVoice) msg.voice = preferredVoice;
+
+            window.speechSynthesis.speak(msg);
+        }
+
+
+
         function typeWriter(element, text, speed = 50) {
             let i = 0;
             element.innerText = "";
@@ -199,40 +239,60 @@
             type();
         }
 
-        // --- 添加消息气泡 ---
         function addMessage(text, role) {
-            const div = document.createElement('div');
-            div.className = `msg ${role}`;
             if (role === 'ai') {
-                container.appendChild(div);
+                // 创建 AI 专属的行容器（含头像）
+                const row = document.createElement('div');
+                row.className = 'ai-row';
+                
+                const img = document.createElement('img');
+                img.className = 'avatar';
+                img.src = './lsf.jpg'; // 这里可以换成卢瑟福的头像图片路径
+                
+                const div = document.createElement('div');
+                div.className = 'msg ai';
+                
+                row.appendChild(img);
+                row.appendChild(div);
+                container.appendChild(row);
+                
                 typeWriter(div, text);
+                container.scrollTop = container.scrollHeight;
+                return div;
             } else {
+                // 用户消息保持原样
+                const div = document.createElement('div');
+                div.className = `msg ${role}`;
                 div.innerText = text;
                 container.appendChild(div);
+                container.scrollTop = container.scrollHeight;
+                return div;
             }
-            container.scrollTop = container.scrollHeight;
-            return div;
         }
 
-        // --- 核心请求逻辑 ---
         async function postToAI(path, body, headers = {}) {
             const aiMsgDiv = addMessage("正在思考...", "ai");
             try {
                 const r = await fetch(API_URL + path, { method: 'POST', body, headers });
                 const d = await r.json();
                 
-                // 更新用户刚刚说的内容（如果是语音的话）
-                if (path === '/chat') {
-                    // 刷新最后一个用户气泡或在此处理
+                if (path === '/chat' && d.userText) {
+                    const userMsgs = document.querySelectorAll('.user');
+                    if (userMsgs.length > 0) {
+                        userMsgs[userMsgs.length - 1].innerText = d.userText;
+                    }
                 }
 
-                typeWriter(aiMsgDiv, d.aiResponse || "卢瑟福没有回应。");
+                const finalContent = (d.aiResponse || "卢瑟福没有回应。").trim();
+                typeWriter(aiMsgDiv, finalContent);
+
+                speak(finalContent);
+
             } catch (e) {
                 aiMsgDiv.innerText = "出错了: " + e.message;
             }
         }
 
-        // --- 文字发送 ---
         function handleSend() {
             const val = tInput.value.trim();
             if (!val) return;
@@ -244,7 +304,6 @@
         sBtn.onclick = handleSend;
         tInput.onkeypress = (e) => { if (e.key === 'Enter') handleSend(); };
 
-        // --- 语音逻辑 ---
         let ac, pr, inpt, chs = [];
         const startRec = async () => {
             try {
@@ -279,8 +338,7 @@
                     v.setInt16(o, x < 0 ? x * 0x8000 : x * 0x7FFF, true); o += 2;
                 }
             }
-            // 语音识别出的文字稍后会通过 API 返回并更新气泡
-            addMessage("🎤 正在识别语音...", "user");
+            addMessage("正在识别语音...", "user");
             postToAI('/chat', b);
         };
 
