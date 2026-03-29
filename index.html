@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>卢瑟福助手</title>
-    <link rel="icon" href="/web.ico">
+    <title>卢瑟福</title>
+    <link rel="icon" href="./web.ico">
     
     <style>
         /* --- 字体加载 --- */
@@ -29,7 +29,7 @@
             --danger-color: #ff4757;
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
-            /* 优先使用 Inter 处理英文/数字，思源黑体处理中文 */
+            
             --main-font: 'Inter', 'source-han-serif-sc', system-ui, -apple-system, sans-serif;
         }
 
@@ -43,6 +43,7 @@
             margin: 0;
             background: var(--bg-color);
             color: #334155;
+
             font-feature-settings: "cv05",  "ss01";
         }
 
@@ -184,12 +185,12 @@
 <body>
 
     <div class="card">
-        <h3>卢瑟福助手</h3>
+        <h3>卢瑟福</h3>
         
         <div class="controls">
-            <div id="st">长按录音 · 直接输入</div>
+            <div id="st">长按录音入</div>
             
-            <button id="micBtn" id="micBtn">🎙️</button>
+            <button id="micBtn" id="micBtn"><h6>语音</h6></button>
             
             <div class="input-group">
                 <input type="text" id="textIn" placeholder="问问卢瑟福..." autocomplete="off">
